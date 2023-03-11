@@ -14,6 +14,7 @@ In each command sent to robot, for example "Back;200;Back;200;200"
 """ 
 class irosMobileRobot:
   TRY_NUM = 20
+  robot   = None
   def __init__(self):
     for idx in range(0, self.TRY_NUM):
       try:
@@ -21,6 +22,7 @@ class irosMobileRobot:
           ser = "COM%s" % idx
         elif (platform.system() == "Linux"):
           ser = "/dev/ttyUSB%s" % idx
+
         self.robot = serial.Serial(ser , 9600, timeout=0.1)
         break
       except:
@@ -30,6 +32,9 @@ class irosMobileRobot:
   greet robot with handshake
   """
   def greet(self):
+    if self.robot == None:
+      return False
+      
     self.robot.reset_input_buffer()
     # handshake, try in TRY_NUM times
     self.robot.write(b"Start\n") 
