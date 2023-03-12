@@ -14,7 +14,12 @@ In each command sent to robot, for example "Back;200;Back;200;200"
 """ 
 class irosMobileRobot:
   TRY_NUM = 20
+  FORWARD = 0
+  BACK    = 1
+  LEFT    = 2
+  RIGHT   = 3
   robot   = None
+  action  = ""
   def __init__(self):
     for idx in range(0, self.TRY_NUM):
       try:
@@ -59,7 +64,7 @@ class irosMobileRobot:
     self.robot.write(b"Pause\n")
     
   """go back"""
-  def back(self, speed = 200, duration = 200):
+  def back(self, speed = 200, duration = 100):
     # send command to the robot
     cmd = "Back;%s;Back;%s;%s\n" % (speed,speed,duration)
     cmd = bytes(cmd, encoding='utf-8')
@@ -67,7 +72,8 @@ class irosMobileRobot:
     self.robot.write(cmd)
     
   """go forward"""
-  def forward(self, speed = 200, duration = 200):
+  def forward(self, speed = 200, duration = 100):
+    self.action = self.FORWARD
     # send command to the robot
     cmd = "Forward;%s;Forward;%s;%s\n" % (speed,speed,duration)
     cmd = bytes(cmd, encoding='utf-8')
@@ -75,7 +81,8 @@ class irosMobileRobot:
     self.robot.write(cmd)
     
   """rotate to the left"""    
-  def left(self, speed = 200, duration = 200):
+  def left(self, speed = 200, duration = 100):
+    self.action = self.BACK
     # send command to the robot
     cmd = "Back;%s;Forward;%s;%s\n" % (speed,speed,duration)
     cmd = bytes(cmd, encoding='utf-8')
@@ -83,13 +90,103 @@ class irosMobileRobot:
     self.robot.write(cmd)   
 
   """rotate to the right"""
-  def right(self, speed = 200, duration = 200):
+  def right(self, speed = 200, duration = 100):
+    self.action = self.RIGHT
     # send command to the robot
     cmd = "Forward;%s;Back;%s;%s\n" % (speed,speed,duration)
     cmd = bytes(cmd, encoding='utf-8')
 
     self.robot.write(cmd)   
 
-  """receive message from robot"""        
+  """control by joystick"""
+  def jcommand(self, jcmd = [], duration = 100):
+    if len(jcmd) < 4:
+      return False
+    
+    if (jcmd[0] > 0 and jcmd[1] == 0 
+      and jcmd[2] == 0 and jcmd[3] == 0):
+      # forward only
+      self.action = self.FORWARD
+      cmd = "Forward;%s;Forward;%s;%s\n" % (int(jcmd[0]), int(jcmd[0]), duration)
+      cmd = bytes(cmd, encoding='utf-8')
+      self.robot.write(cmd)   
+    elif (jcmd[0] == 0 and jcmd[1] > 0 
+      and jcmd[2] == 0 and jcmd[3] == 0):
+      # back
+      self.action = self.BACK
+      cmd = "Back;%s;Back;%s;%s\n" % (int(jcmd[1]), int(jcmd[1]), duration)
+      cmd = bytes(cmd, encoding='utf-8')
+      self.robot.write(cmd)   
+    elif (jcmd[0] == 0 and jcmd[1] == 0 
+      and jcmd[2] > 0 and jcmd[3] == 0):
+      if self.action == self.BACK:
+        # back-left
+        cmd = "Back;%s;Back;%s;%s\n" % (int(jcmd[2]), 0, duration)
+        cmd = bytes(cmd, encoding='utf-8')
+        self.robot.write(cmd)
+      else:
+        # forward-left 
+        cmd = "Forward;%s;Forward;%s;%s\n" % (int(jcmd[2]) , 0, duration) 
+        cmd = bytes(cmd, encoding='utf-8')
+        self.robot.write(cmd)
+
+    elif (jcmd[0] == 0 and jcmd[1] == 0 
+      and jcmd[2] == 0 and jcmd[3] > 0):
+      if self.action == self.BACK:
+        # back-right 
+        cmd = "Back;%s;Back;%s;%s\n" % (0, int(jcmd[3]), duration)
+        cmd = bytes(cmd, encoding='utf-8')
+        self.robot.write(cmd)   
+
+      else:
+        # forward-right
+        cmd = "Forward;%s;Forward;%s;%s\n" % (0, int(jcmd[3]), duration)
+        cmd = bytes(cmd, encoding='utf-8')      
+        self.robot.write(cmd)
+    # forward-left
+    if (jcmd[0] > 0 and jcmd[2] > 0):
+      self.action = self.FORWARD
+      
+      speedA = min(255, int(jcmd[0] + jcmd[2]))
+      speedB = 255 - int(jcmd[2])
+      
+      cmd = "Forward;%s;Forward;%s;%s\n" % (speedA, speedB, duration) 
+      cmd = bytes(cmd, encoding='utf-8')
+
+      self.robot.write(cmd)   
+    elif jcmd[0] > 0 and jcmd[3] > 0:
+    # forward-right
+      self.action = self.FORWARD
+      
+      speedA = 255 - int(jcmd[3])
+      speedB = min(255, int(jcmd[0] + jcmd[3]))
+      
+      cmd = "Forward;%s;Forward;%s;%s\n" % (speedA, speedB, duration) 
+      cmd = bytes(cmd, encoding='utf-8')    
+      self.robot.write(cmd) 
+    elif jcmd[1] > 0 and jcmd[2] > 0:
+      # back-left
+      self.action = self.BACK
+      
+      speedA = min(255, int(jcmd[1] + jcmd[2]))
+      speedB = 255 - int(jcmd[2])
+      
+      cmd = "Back;%s;Back;%s;%s\n" % (speedA, speedB, duration)
+      cmd = bytes(cmd, encoding='utf-8')    
+      self.robot.write(cmd) 
+    elif jcmd[1] > 0 and jcmd[3] > 0:
+      # back-right
+      self.action = self.BACK
+      
+      speedA = 255 - int(jcmd[3])
+      speedB = min(255, int(jcmd[1] + jcmd[3]))
+      
+      cmd = "Back;%s;Back;%s;%s\n" % (speedA, speedB, duration)
+      cmd = bytes(cmd, encoding='utf-8')    
+      self.robot.write(cmd) 
+    elif all(v == 0 for v in jcmd):
+      self.pause()
+
+  """receive message from robot"""
   def response(self):
     return self.robot.readline().decode('utf-8',errors='ignore').rstrip()
