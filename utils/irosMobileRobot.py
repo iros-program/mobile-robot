@@ -102,6 +102,9 @@ class irosMobileRobot:
   def jcommand(self, jcmd = [], duration = 100):
     if len(jcmd) < 4:
       return False
+      
+    # flush input buffer
+    self.flush()  
     
     if (jcmd[0] > 0 and jcmd[1] == 0 
       and jcmd[2] == 0 and jcmd[3] == 0):
@@ -185,8 +188,13 @@ class irosMobileRobot:
       cmd = bytes(cmd, encoding='utf-8')    
       self.robot.write(cmd) 
     elif all(v == 0 for v in jcmd):
-      self.pause()
+      if self.response() != "Pause":
+        self.pause()
 
   """receive message from robot"""
   def response(self):
     return self.robot.readline().decode('utf-8',errors='ignore').rstrip()
+  
+  def flush(self):
+    bytesToRead = self.robot.inWaiting()
+    self.robot.read(bytesToRead)
