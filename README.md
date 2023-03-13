@@ -16,8 +16,9 @@ pip3 install -r requirements.txt
 sudo adduser $USER dialout
 
 ## サンプル実行
+```
 python3 forward.py
-
+```
 ## デモ動画
 Switchコントローラーを使ってswitch_controller.pyサンプルでロボットを動かした動画をyoutubeへアップしました。   
 [Youtube動画](https://www.youtube.com/watch?v=yShiS1NlSEk)
