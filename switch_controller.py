@@ -10,29 +10,30 @@ from pygame.locals import *
 import time
       
 def main() :
-  mobile_robot = irosMobileRobot()
   # greet robot with handshake
-  if (mobile_robot.greet() == False):
+  mobile_robot = irosMobileRobot()
+  if (mobile_robot == None):
     print("Robot not found!")
     exit()
   
   pygame.init()
   jcmd    = [0, 0, 0, 0] # forward,back,right,left
+  pressed_button = ""
   while True:
     eventlist = pygame.event.get()
     for e in eventlist:
       if e.type == JOYBUTTONDOWN:
         if e.button == 11:
-          mobile_robot.action = mobile_robot.FORWARD
+          pressed_button = "Forward"
           print("Forward")
         if e.button == 12:
-          mobile_robot.action = mobile_robot.BACK
+          pressed_button = "Back"
           print("Back")
         if e.button == 14:
-          mobile_robot.action = mobile_robot.RIGHT
+          pressed_button = "Right"
           print("Right")
         if e.button == 13:
-          mobile_robot.action = mobile_robot.LEFT
+          pressed_button = "Left"
           print("Left")
       if e.type == JOYBUTTONUP:
         if e.button in [11,12,13,14]:
@@ -43,7 +44,9 @@ def main() :
           mobile_robot.stop()
           time.sleep(2)
           exit()
-
+      if e.type == JOYBUTTONUP:
+        pressed_button = ""
+        
       if e.type == JOYAXISMOTION:
         if e.axis == 3:
           # forward: -1.0, back: 1.0
@@ -62,14 +65,15 @@ def main() :
             jcmd[3] = e.value*255
           else:
             jcmd[2],jcmd[3] = 0,0
+            
     mobile_robot.jcommand(jcmd)
-    if mobile_robot.action == mobile_robot.FORWARD:
+    if pressed_button == "Forward":
       mobile_robot.forward()
-    elif mobile_robot.action == mobile_robot.BACK:
+    elif pressed_button == "Back":
       mobile_robot.back()
-    elif mobile_robot.action == mobile_robot.RIGHT:
+    elif pressed_button == "Right":
       mobile_robot.right()
-    elif mobile_robot.action == mobile_robot.LEFT:
+    elif pressed_button == "Left":
       mobile_robot.left()
     
     time.sleep(0.05)
