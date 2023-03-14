@@ -29,14 +29,17 @@ class irosMobileRobot:
           ser = "/dev/ttyUSB%s" % idx
 
         self.robot = serial.Serial(ser , 9600, timeout=0.1)
-        break
+        if self._greet():
+          break
+        else:
+          self.robot = None
       except:
         pass
 
   """
   greet robot with handshake
   """
-  def greet(self):
+  def _greet(self):
     if self.robot == None:
       return False
       
@@ -104,7 +107,7 @@ class irosMobileRobot:
       return False
       
     # flush input buffer
-    self.flush()  
+    self._flush()  
     
     if (jcmd[0] > 0 and jcmd[1] == 0 
       and jcmd[2] == 0 and jcmd[3] == 0):
@@ -195,6 +198,6 @@ class irosMobileRobot:
   def response(self):
     return self.robot.readline().decode('utf-8',errors='ignore').rstrip()
   
-  def flush(self):
+  def _flush(self):
     bytesToRead = self.robot.inWaiting()
     self.robot.read(bytesToRead)
