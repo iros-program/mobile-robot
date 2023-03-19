@@ -4,6 +4,7 @@ Intelligent Robot System (i-ros.com)
 import platform
 import serial
 import time
+import os
 
 """
       COMMAND DESCRIPTION
@@ -26,6 +27,7 @@ class irosMobileRobot:
         if (platform.system() == "Windows"):
           ser = "COM%s" % idx
         elif (platform.system() == "Linux"):
+          os.environ["SDL_VIDEODRIVER"] = "dummy"
           ser = "/dev/ttyUSB%s" % idx
 
         self.robot = serial.Serial(ser , 9600, timeout=0.1)
